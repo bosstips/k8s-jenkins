@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      serviceAccountName: jenkins
+      initContainers:
+      - name: fix-permissions
+        image: alpine:3.6
+        command: [ "sh","-c","chown -R 1000:1000 /var/jenkins_home" ]
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: data
+          mountPath: /var/jenkins_home
+      containers:
+      - name: jenkins
+        image: harbor.mastergo.com/master-tools/jenkins:lts
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: jnlp
+          containerPort: 50000
+        env:
+        - name: "JAVA_OPTS"
+          value: "-Xms4096m -Xmx4096m -Duser.timezone=Asia/Shanghai -Dhudson.model.DirectoryBrowserSupport.CSP="
+        volumeMounts:
+        - name: data
+          mountPath: /var/jenkins_home
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: jenkins

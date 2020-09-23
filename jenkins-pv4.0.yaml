@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+  name: jenkins
+spec: 
+  capacity: 
+    storage: 10Gi
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    server: 192.168.15.226
+    path: /data/v1
